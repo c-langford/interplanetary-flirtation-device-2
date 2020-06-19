@@ -22,8 +22,8 @@
 		</style>
 	</head>
 
-	<body>
-		<div id="info">
+	<body style="margin:0; padding: 0;">
+		<!-- <div id="info">
 			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - skinning and morphing<br />
 			<p>
 				The animation system allows clips to be played individually, looped, or crossfaded with other clips. This example shows a character looping in one of several base animation states, then transitioning smoothly to one-time actions. Facial expressions are controlled independently with morph targets.
@@ -31,8 +31,8 @@
 			sceneParts by
 			<a href="https://www.patreon.com/quaternius" target="_blank" rel="noopener">Tomás Laulhé</a>,
 			modifications by <a href="https://donmccurdy.com/" target="_blank" rel="noopener">Don McCurdy</a>. CC0.<br />
-        </div>
-        <div id="container"></div>
+        </div> -->
+        <div id="container" style="margin:0; padding: 0;"></div>
         
         <script src="lib/hammerjs/hammer.min.js"></script>
 
@@ -116,6 +116,8 @@
 					console.error( e );
 
 				} );
+
+
                 raycaster = new THREE.Raycaster();
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -176,24 +178,6 @@
 
 				statesFolder.open();
 
-			// 	// emotes
-
-			// 	var emoteFolder = gui.addFolder( 'Emotes' );
-
-			// 	function createEmoteCallback( name ) {
-
-			// 		api[ name ] = function () {
-
-			// 			fadeToAction( name, 0.2 );
-
-			// 			mixer.addEventListener( 'finished', restoreState );
-
-			// 		};
-
-			// 		emoteFolder.add( api, name );
-
-			// 	}
-
 				function restoreState() {
 
 					mixer.removeEventListener( 'finished', restoreState );
@@ -202,31 +186,8 @@
 
 				}
 
-			// 	for ( var i = 0; i < emotes.length; i ++ ) {
-
-			// 		createEmoteCallback( emotes[ i ] );
-
-			// 	}
-
-			// 	emoteFolder.open();
-
-			// 	// expressions
-
-			// 	face = sceneParts.getObjectByName( 'Head_2' );
-
-			// 	var expressions = Object.keys( face.morphTargetDictionary );
-			// 	var expressionFolder = gui.addFolder( 'Expressions' );
-
-			// 	for ( var i = 0; i < expressions.length; i ++ ) {
-
-			// 		expressionFolder.add( face.morphTargetInfluences, i, 0, 1, 0.01 ).name( expressions[ i ] );
-
-			// 	}
-
 				activeAction = actions[ 'test1' ];
 				activeAction.play();
-
-			// 	expressionFolder.open();
 
 			}
 
@@ -282,7 +243,9 @@
                     raycaster.setFromCamera(mouse, camera);
 
                     var intersects = raycaster.intersectObject(model, true);
-                    console.log(intersects);
+					// console.log(lastEvent.mouseX);
+					// console.log(lastEvent.mouseY);
+                    // console.log(intersects);
                     if (intersects.length > 0) {
 
                         alert("touched!");
@@ -294,26 +257,30 @@
             }
 
             function handleRegion() {
-                    var region = document.getElementById('container');
+                    var region = container;
                     var detector = new Hammer(region);
 
                     detector.on("tap", function (ev) {
-                        // shellRegion.textContent = ev.type + " gestures detected.";
+              
 
                         //fadeToAction(api.state, 0.5);
-                        
-                        //how to know the position of the interaction type?
-                        //beginning + end position of event?
-                        //alert(ev.center.x + " " + ev.center.y);
+                    
+						// console.log(window.innerWidth);
+						// console.log(window.innerHeight);
+
                         lastEvent.mouseX = (ev.center.x / window.innerWidth) * 2 - 1; 
                         lastEvent.mouseY = - (ev.center.y / window.innerHeight) * 2 + 1;
                         lastEvent.used = false;
                     });
 
                     detector.on("press", function (ev) {
-                        // shellRegion.textContent = ev.type + " gestures detected.";
+      
                         // fadeToAction(api.state, 0.5);
                         //alert(ev.center.x + " " + ev.center.y);
+						// console.log(ev);
+						// console.log(window.innerWidth);
+						// console.log(window.innerHeight);
+
                         lastEvent.mouseX = (ev.center.x / window.innerWidth) * 2 - 1;
                         lastEvent.mouseY = - (ev.center.y / window.innerHeight) * 2 + 1;
                         lastEvent.used = false;
