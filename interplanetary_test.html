@@ -23,16 +23,9 @@
 	</head>
 
 	<body style="margin:0; padding: 0;">
-		<!-- <div id="info">
-			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - skinning and morphing<br />
-			<p>
-				The animation system allows clips to be played individually, looped, or crossfaded with other clips. This example shows a character looping in one of several base animation states, then transitioning smoothly to one-time actions. Facial expressions are controlled independently with morph targets.
-			</p>
-			sceneParts by
-			<a href="https://www.patreon.com/quaternius" target="_blank" rel="noopener">Tomás Laulhé</a>,
-			modifications by <a href="https://donmccurdy.com/" target="_blank" rel="noopener">Don McCurdy</a>. CC0.<br />
-        </div> -->
+
         <div id="container" style="margin:0; padding: 0;"></div>
+
         
         <script src="lib/hammerjs/hammer.min.js"></script>
 
@@ -47,8 +40,8 @@
             import { OrbitControls } from './lib/OrbitControls.js';
             
 
-			var container, stats, clock, gui, mixer, actions, activeAction, previousAction;
-			var camera, scene, renderer, sceneParts, face, controls, model, raycaster;
+			var container, stats, clock, gui, mixer, actions, activeAction, previousAction, startElement;
+			var camera, scene, renderer, sceneParts, face, controls, model, raycaster, audioTest;
 
             var api = { state: 'test1' };
             
@@ -64,6 +57,8 @@
             handleRegion();
 
 			function init() {
+
+				audioTest = new Audio('audio/snarl.mp3');
 
 				container = document.getElementById('container');
 
@@ -133,8 +128,8 @@
 				window.addEventListener( 'resize', onWindowResize, false );
 
 				// stats
-				stats = new Stats();
-				container.appendChild( stats.dom );
+				// stats = new Stats();
+				// container.appendChild( stats.dom );
 
 			}
 
@@ -230,11 +225,27 @@
 
 				requestAnimationFrame( animate );
 
-				render();
+				renderer.render(scene, camera);
 
-				stats.update();
+				// stats.update();
 
             }
+
+			function testIntersections(ev) {
+				var mouse = new THREE.Vector2((ev.center.x / window.innerWidth) * 2 - 1, - (ev.center.y / window.innerHeight) * 2 + 1);
+				raycaster.setFromCamera(mouse, camera);
+
+				var intersects = raycaster.intersectObject(model, true);
+				// console.log(lastEvent.mouseX);
+				// console.log(lastEvent.mouseY);
+				// console.log(intersects);
+				if (intersects.length > 0) {
+
+					fadeToAction(api.state, 0.5);
+					audioTest.load();
+					audioTest.play();
+				}
+			}
 
             function render() {
                 // find intersections
@@ -248,8 +259,8 @@
                     // console.log(intersects);
                     if (intersects.length > 0) {
 
-                        alert("touched!");
-
+                        fadeToAction(api.state, 0.5);
+						// audioTest.play();
                     }
                     lastEvent.used = true;
                 }
@@ -260,32 +271,9 @@
                     var region = container;
                     var detector = new Hammer(region);
 
-                    detector.on("tap", function (ev) {
-              
+                    detector.on("tap", testIntersections);
 
-                        //fadeToAction(api.state, 0.5);
-                    
-						// console.log(window.innerWidth);
-						// console.log(window.innerHeight);
-
-                        lastEvent.mouseX = (ev.center.x / window.innerWidth) * 2 - 1; 
-                        lastEvent.mouseY = - (ev.center.y / window.innerHeight) * 2 + 1;
-                        lastEvent.used = false;
-                    });
-
-                    detector.on("press", function (ev) {
-      
-                        // fadeToAction(api.state, 0.5);
-                        //alert(ev.center.x + " " + ev.center.y);
-						// console.log(ev);
-						// console.log(window.innerWidth);
-						// console.log(window.innerHeight);
-
-                        lastEvent.mouseX = (ev.center.x / window.innerWidth) * 2 - 1;
-                        lastEvent.mouseY = - (ev.center.y / window.innerHeight) * 2 + 1;
-                        lastEvent.used = false;
-
-                    });
+                    detector.on("press", testIntersections);
 
                 };
 
