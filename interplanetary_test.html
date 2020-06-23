@@ -97,15 +97,15 @@
 				// sceneParts
 
 				var loader = new GLTFLoader();
-				loader.load( 'models/snail.glb', function ( gltf ) {
+				loader.load( 'models/snail_ani.glb', function ( gltf ) {
 
 					sceneParts = gltf.scene;
                     scene.add( sceneParts );
-                    //model = sceneParts['children'][2];
-                    //console.log(sceneParts);
-                    // console.log(gltf.animations)
+                    model = sceneParts['children'][2];
+                    // console.log(sceneParts);
+                    console.log(gltf.animations)
 
-					//createGUI( sceneParts, gltf.animations );
+					createGUI( sceneParts, gltf.animations );
 
 				}, undefined, function ( e ) {
 
@@ -138,7 +138,18 @@
 
 			function createGUI( sceneParts, animations ) {
 
-				var states = [ 'test1', 'test2'];
+				var states = [ 
+					'cramp',
+					'antennae-twitch',
+					'bend-slightly-forward',
+					'convulse', 
+					'dance', 
+					'idle', 
+					'move_head_up', 
+					'shudder', 
+					'tail_thump', 
+					'tail_wag'
+				 ];
 				// var emotes = [ 'Jump', 'Yes', 'No', 'Wave', 'Punch', 'ThumbsUp' ];
 
 				gui = new GUI();
@@ -184,7 +195,7 @@
 
 				}
 
-				activeAction = actions[ 'test1' ];
+				activeAction = actions[ 'idle' ];
 				activeAction.play();
 
 			}
