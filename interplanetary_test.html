@@ -23,7 +23,7 @@
 	</head>
 
 	<body style="margin:0; padding: 0;">
-		<!-- <button id="button">Click me</button> -->
+		<!-- <button id="button">debug</button> -->
         <div id="container" style="margin:0; padding: 0;"></div>
 
         
@@ -41,20 +41,47 @@
             
 
 			var container, stats, clock, gui, mixer, actions, activeAction, previousAction, startElement;
-			var camera, scene, renderer, sceneParts, face, controls, model, raycaster, audioTest;
+			var camera, scene, renderer, sceneParts, face, controls, raycastTarget, raycaster, audioTest;
 
-            var api = { state: 'test1' };
-            
-            var lastEvent = {
-                mouseX: null,
-                mouseY: null,
-                used: true,
-                eventType: null
-            };
+			var currentDropdownSelection = { state: 'idle' };
+			
+			var state = 0;
+			var previousState = 0;
+			var stateCounter = 0;
+			var interactionAnimations = {
+				"panend": ["shudder", "move_head_up", "antennae_twich", "tail_thump", "antennae_twich", "tail_thump"],
+				"swipe": ["cramp", "cramp", "shudder", "antennae_twitch", "dance"],
+				"tap": ["antennae-twitch", "tail_thump", "antennae-twitch", "tail_thump", "cramp"], 
+				"doubletap": ["antennae-twitch", "tail_thump", "tail_thump", "cramp", "bend_slightly_forward"],
+				"pinchend": ["tail_thump", "move_head_up", "shudder", "cramp"], 
+				"press": ["bend_slightly_forward", "tail_thump", "antennae_twitch"]
+			};
+
+			var stateIdleAnimations =  [
+				["idle"], //state 0
+				["antennae-twitch", "tail_wag"], //state 1
+				["shudder", "dance"], //state 2
+				["convulse"] //state 3
+			];
+			var stateEffects = [
+				[], // state 0
+				[], // state 1
+				[], // state 2
+				[] // state 3
+			];
+			var interactionPoints = {
+				"panend": 3,
+				"swipe": 5,
+				"tap": 1, 
+				"doubletap": 2,
+				"pinchend": 3, 
+				"press": 2
+			}
+
 
 			init();
             animate();
-            handleRegion();
+            addTouchEventListeners();
 
 			function init() {
 
@@ -64,12 +91,11 @@
 
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
 				camera.position.set( -0.923, 0.5, 5.52 );
-                // camera.lookAt( new THREE.Vector3( 0.14, 20 , -0.99 ) );
+                
 
 				scene = new THREE.Scene();
 				var texture = new THREE.TextureLoader().load( "models/gradient-orange-green.png" );
 				scene.background = texture;
-				// scene.fog = new THREE.Fog( 0xe0e0e0, 20, 100 );
 
 				clock = new THREE.Clock();
 
@@ -83,34 +109,22 @@
 				light.position.set( 0, 20, 10 );
 				scene.add( light );
 
-				// ground
-
-				// var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 2000, 2000 ), new THREE.MeshBasicMaterial( { color: 0xe5ea46, depthWrite: false } ) );
-				// mesh.rotation.x = - Math.PI / 2;
-				// scene.add( mesh );
-
-				// var grid = new THREE.GridHelper( 200, 40, 0x000000, 0x000000 );
-				// grid.material.opacity = 0.2;
-				// grid.material.transparent = true;
-				// scene.add( grid );
-
-				// sceneParts
 
 				var loader = new GLTFLoader();
 				loader.load( 'models/snail_ani.glb', function ( gltf ) {
 
 					sceneParts = gltf.scene;
                     scene.add( sceneParts );
-                    model = sceneParts['children'][2];
-                    // console.log(sceneParts);
-                    console.log(gltf.animations)
+					raycastTarget = sceneParts['children'][4];
+					raycastTarget.material.transparent = true;
+					raycastTarget.material.opacity = 0.2;
+
+                    // console.log(raycastTarget);
+                    // console.log(gltf.animations)
 
 					createGUI( sceneParts, gltf.animations );
-
 				}, undefined, function ( e ) {
-
 					console.error( e );
-
 				} );
 
 
@@ -122,10 +136,10 @@
 				renderer.outputEncoding = THREE.sRGBEncoding;
                 container.appendChild( renderer.domElement );
                 
-                controls = new OrbitControls(camera, renderer.domElement);
-				controls.screenSpacePanning = true;
-                // controls.target.set(0, 0.5, 0);
-                controls.update();
+                // controls = new OrbitControls(camera, renderer.domElement);
+				// controls.screenSpacePanning = true;
+                // // controls.target.set(0, 0.5, 0);
+                // controls.update();
 
 				window.addEventListener( 'resize', onWindowResize, false );
 				// document.getElementById("button").addEventListener('click', printOut);
@@ -133,7 +147,18 @@
 				// stats
 				// stats = new Stats();
 				// container.appendChild( stats.dom );
+			}
 
+			function evaluateState() {
+				if(stateCounter < 61) {
+					state = 0;
+				} else if (stateCounter < 121) {
+					state = 1;
+				} else if (stateCounter < 181) {
+					state = 2;
+				} else {
+					state = 3;
+				}
 			}
 
 			function createGUI( sceneParts, animations ) {
@@ -150,7 +175,6 @@
 					'tail_thump', 
 					'tail_wag'
 				 ];
-				// var emotes = [ 'Jump', 'Yes', 'No', 'Wave', 'Punch', 'ThumbsUp' ];
 
 				gui = new GUI();
 
@@ -168,39 +192,24 @@
 
 						action.clampWhenFinished = true;
 						action.loop = THREE.LoopOnce;
-
 					}
-
 				}
 
 				// states
-
 				var statesFolder = gui.addFolder( 'States' );
-
-				var clipCtrl = statesFolder.add( api, 'state' ).options( states );
-
+				var clipCtrl = statesFolder.add( currentDropdownSelection, 'state' ).options( states );
 				clipCtrl.onChange( function () {
-
-					fadeToAction( api.state, 0.5 );
-
+					fadeToAction( currentDropdownSelection.state, 0.5 );
 				} );
 
 				statesFolder.open();
 
-				function restoreState() {
-
-					mixer.removeEventListener( 'finished', restoreState );
-
-					fadeToAction( api.state, 0.2 );
-
-				}
-
 				activeAction = actions[ 'idle' ];
+				activeAction.setLoop(1)
 				activeAction.play();
-
 			}
 
-			function fadeToAction( name, duration ) {
+			function fadeToAction( name, duration, loop = false, timeScale = 1 ) {
 
 				previousAction = activeAction;
 				activeAction = actions[ name ];
@@ -213,11 +222,11 @@
 
 				activeAction
 					.reset()
-					.setEffectiveTimeScale( 1 )
+					.setLoop( loop ? THREE.LoopRepeat : THREE.LoopOnce )
+					.setEffectiveTimeScale( timeScale )
 					.setEffectiveWeight( 1 )
 					.fadeIn( duration )
 					.play();
-
 			}
 
 			function onWindowResize() {
@@ -241,56 +250,95 @@
 				if ( mixer ) mixer.update( dt );
 
 				requestAnimationFrame( animate );
-
-				renderer.render(scene, camera);
+				render();
 				// stats.update();
 
-            }
+			}
+			
+			function render() {
+				evaluateState();
+				if (previousState != state) {
+					changeState();
+					previousState = state;
+				}
+				if (activeAction) {
+					if (!activeAction.isRunning()) {
+						startIdleAnimation(state);
+					}
+				}
+				renderer.render(scene, camera);
+			}
 
-			function testIntersections(ev) {
-				var mouse = new THREE.Vector2((ev.center.x / window.innerWidth) * 2 - 1, - (ev.center.y / window.innerHeight) * 2 + 1);
-				raycaster.setFromCamera(mouse, camera);
+			function startIdleAnimation(state, transitionDuration, speed) {
+				var animationName = randomArrayElement(stateIdleAnimations[state]);
+				// console.log("idle: " + animationName);
+				fadeToAction(animationName, transitionDuration, true, speed);
+			}
 
-				var intersects = raycaster.intersectObject(model, true);
-				// console.log(lastEvent.mouseX);
-				// console.log(lastEvent.mouseY);
-				// console.log(intersects);
-				if (intersects.length > 0) {
-
-					// fadeToAction(api.state, 0.5);
-					audioTest.load();
-					audioTest.play();
+			function changeState () {
+				switch (state) {
+					case 0: 
+						break; 
+					case 1:
+						console.log("state 1 reached");
+						startIdleAnimation(state, 0.5, 1);
+						break; 
+					case 2:
+						break; 
+					case 3: 
+						break; 
+					default: 
+						break; 
 				}
 			}
 
-            function render() {
-                // find intersections
-                // if (lastEvent.used == false) {
-                //     var mouse = new THREE.Vector2(lastEvent.mouseX, lastEvent.mouseY);
-                //     raycaster.setFromCamera(mouse, camera);
+			function randomArrayElement(items) {
+				return items[Math.floor(Math.random()*items.length)];
+			}
 
-                //     var intersects = raycaster.intersectObject(model, true);
-				// 	// console.log(lastEvent.mouseX);
-				// 	// console.log(lastEvent.mouseY);
-                //     // console.log(intersects);
-                //     if (intersects.length > 0) {
+			function touchIntersectsWithSnail(ev) {
+				
+				var mouse = new THREE.Vector2((ev.center.x /  renderer.domElement.clientWidth ) * 2 - 1, - (ev.center.y /  renderer.domElement.clientHeight ) * 2 + 1);
+				
+				raycaster.setFromCamera(mouse, camera);
 
-                //         // fadeToAction(api.state, 0.5);
-				// 		// audioTest.play();
-                //     }
-                //     lastEvent.used = true;
-                // }
-                renderer.render(scene, camera);
-            }
+				var intersects = raycaster.intersectObject(raycastTarget, true);
+				// console.log(intersects);
+				if (intersects.length > 0) {
+					return true;
+				}
+				return false;
+			}
 
-            function handleRegion() {
+			function handleTouchEvent(ev) {
+				// console.log(ev.type);
+
+				if (touchIntersectsWithSnail(ev)) {
+					// fadeToAction("dance", 0.5, false, 1);
+					// audioTest.load();
+					// audioTest.play();
+					stateCounter += interactionPoints[ev.type]
+					console.log(stateCounter);
+				}
+			}
+
+
+            function addTouchEventListeners() {
                     var region = container;
-                    var detector = new Hammer(region);
+					var detector = new Hammer(region);
+					
+					var singleTap = new Hammer.Tap({ event: 'tap' });
+					var doubleTap = new Hammer.Tap({ event: 'doubletap', taps: 2, interval: 500, posThreshold: 30 });
+					detector.add([doubleTap, singleTap]);
+					doubleTap.recognizeWith(singleTap);
+					singleTap.requireFailure(doubleTap);
 
-                    detector.on("tap", testIntersections);
-
-                    detector.on("press", testIntersections);
-
+					var swipe = new Hammer.Swipe({ event:'swipe', pointers: 1, velocity: 0.25, threshold: 10, direction: Hammer.DIRECTION_ALL });
+					var pinch = new Hammer.Pinch({event:'pinch', threshold: 0 });
+					detector.add(pinch);
+					detector.add(swipe);
+					detector.add(new Hammer.Pan({threshold: 70 }).requireFailure([pinch, swipe]));
+                    detector.on("tap press swipe doubletap pinchend panend", handleTouchEvent);
                 };
 
 		</script>
