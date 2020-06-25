@@ -48,7 +48,7 @@
 		<!-- <a href="files/a-flipper-strokes.pdf" target="_blank">download test</a> -->
         <div id="container" style="margin:0; padding: 0;"></div>
 
-        
+        <div style="position: absolute; bottom: 10%; width: 100%; text-align: center;"><button><</button><button>+</button><button>-</button><button>></button></div>
         <script src="lib/hammerjs/hammer.min.js"></script>
 
 		<script type="module">
@@ -158,10 +158,8 @@
 				renderer.outputEncoding = THREE.sRGBEncoding;
                 container.appendChild( renderer.domElement );
                 
-                // controls = new OrbitControls(camera, renderer.domElement);
-				// controls.screenSpacePanning = true;
-                // // controls.target.set(0, 0.5, 0);
-                // controls.update();
+                controls = new OrbitControls(camera, renderer.domElement);
+                controls.update();
 
 				window.addEventListener( 'resize', onWindowResize, false );
 				// document.getElementById("button").addEventListener('click', printOut);
