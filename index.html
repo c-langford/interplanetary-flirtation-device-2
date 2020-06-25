@@ -40,15 +40,75 @@
 				margin-right: auto;
 				padding: 0 2em;
 			}
+
+            #intro {
+				width: 100vw;
+				height: 100vh;
+				position: absolute;
+				top: 0;
+				left: 0;
+				background: #ce9db8; 
+				background: #ce9db8e0;
+				display: table;
+                z-index: 5;
+			}
+
+            .intro-text {
+				font-family: Arial, Helvetica, sans-serif;
+				text-align: center;
+				margin: 10% auto 0 auto;
+                padding: 5%;
+                font-size: x-large;
+                max-width: 400px;
+			}
+
+			.inner {
+				display: table-cell;
+				/* vertical-align: middle; */
+                text-align: center;
+			}   
+            button {
+                font-size: x-large;
+            }
+
+			#close {
+				position: absolute;
+				right: 5%;
+    			font-size: x-large;
+			}
+
+            #webglmessage {
+                z-index: 6;
+                font-family: monospace;
+                font-size: 13px;
+                font-weight: normal;
+                text-align: center;
+                background: rgb(255, 255, 255);
+                color: rgb(0, 0, 0);
+                width: 100%;
+                position: absolute;
+                top: 0;
+                height: 100%;
+            }
 		</style>
 	</head>
 
 	<body style="margin:0; padding: 0;">
 		<!-- <button id="button">debug</button> -->
 		<!-- <a href="files/a-flipper-strokes.pdf" target="_blank">download test</a> -->
+        <div id="intro">
+            <p id="close">&#10006;</p>
+            <div class="inner">
+        
+                <p id="text" class="intro-text">Hi, welcome to the Interplanetary Flirtation Device - a telecommunication system that allows you to communicate with
+                extra-terrestrials using touch.
+                </p>
+                <button id="next">Next</button>
+            </div>
+        </div>
+        <div style="position: absolute; bottom: 5%; width: 100%; text-align: center;"><button id="zoomin">+</button><button id="zoomout">-</button></div>
         <div id="container" style="margin:0; padding: 0;"></div>
 
-        <div style="position: absolute; bottom: 10%; width: 100%; text-align: center;"><button><</button><button>+</button><button>-</button><button>></button></div>
         <script src="lib/hammerjs/hammer.min.js"></script>
 
 		<script type="module">
@@ -59,9 +119,12 @@
 			import { GUI } from './lib/dat.gui.module.js';
 
             import { GLTFLoader } from './lib/GLTFLoader.js';
-            import { OrbitControls } from './lib/OrbitControls.js';
-            
+            import {WEBGL} from './lib/webgl.js';
 
+            if (!WEBGL.isWebGLAvailable()) {
+                var warning = WEBGL.getWebGLErrorMessage();
+                document.body.appendChild(warning);
+            }
 			var container, stats, clock, gui, mixer, actions, activeAction, previousAction, startElement;
 			var camera, scene, renderer, sceneParts, face, controls, raycastTarget, raycaster, audioTest;
 
@@ -99,21 +162,28 @@
 				"pinchend": 3, 
 				"press": 2
 			}
+            var currentText = -1;
+            var texts = [
+                'The Interplanetary Flirtation Device works best on mobile devices. If you are using a desktop computer, please visit this page on a mobile device. <br><br> <img style="width:20vh;height:20vh;" src="images/qr-code.png"> <br><br> https://ifd.co-ordinat.es',
+                'Please turn up your volume.',
+                'In order to communicate with extra-terrestrials using this experimental method, you are required to tap, press, pinch and stroke the interface - a rare variety of snail. <br><br> When your gestures have been successfully encoded, the snail will peak in stimulation levels and transmit your message. You should receive a response from your correspondent shortly thereafter.'
+            ]
 
+            var text;
 
 			init();
             animate();
-            addTouchEventListeners();
 
 			function init() {
 
 				audioTest = new Audio('audio/snarl.mp3');
 
-				container = document.getElementById('container');
+                container = document.getElementById('container');
+                text = document.getElementById('text');
 
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
 				camera.position.set( -0.923, 0.5, 5.52 );
-                
+                camera.lookAt(0,0.25,0);
 
 				scene = new THREE.Scene();
 				var texture = new THREE.TextureLoader().load( "models/gradient-orange-green.png" );
@@ -135,7 +205,8 @@
 				var loader = new GLTFLoader();
 				loader.load( 'models/snail_ani.glb', function ( gltf ) {
 
-					sceneParts = gltf.scene;
+                    sceneParts = gltf.scene;
+                    scene.position.set( 0.25, 0, 0);
                     scene.add( sceneParts );
 					raycastTarget = sceneParts['children'][4];
 					raycastTarget.material.transparent = true;
@@ -157,17 +228,42 @@
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.outputEncoding = THREE.sRGBEncoding;
                 container.appendChild( renderer.domElement );
-                
-                controls = new OrbitControls(camera, renderer.domElement);
-                controls.update();
 
 				window.addEventListener( 'resize', onWindowResize, false );
 				// document.getElementById("button").addEventListener('click', printOut);
-
+				document.getElementById("zoomin").addEventListener('click', zoomIn);
+                document.getElementById("zoomout").addEventListener('click', zoomOut);
+                document.getElementById("close").addEventListener('click', closeOverlay);
+                document.getElementById("next").addEventListener('click', next);
+                  
 				// stats
 				// stats = new Stats();
 				// container.appendChild( stats.dom );
-			}
+            }
+            function next() {
+                currentText ++;
+                if (currentText >= 3) {
+                    closeOverlay();
+                }
+                text.innerHTML = texts[currentText];
+            }
+
+            function closeOverlay() {
+                    var intro = document.getElementById('intro');
+                    intro.parentNode.removeChild(intro);
+                    addTouchEventListeners();
+                };
+            
+            function zoomIn() {
+                camera.zoom += 0.2;
+                camera.updateProjectionMatrix();
+            }
+
+            function zoomOut() {
+                camera.zoom -= 0.2;
+                camera.updateProjectionMatrix();
+
+            }
 
 			function evaluateState() {
 				if(stateCounter < 61) {
@@ -196,7 +292,7 @@
 					'tail_wag'
 				 ];
 
-				gui = new GUI();
+				// gui = new GUI();
 
 				mixer = new THREE.AnimationMixer( sceneParts );
 
@@ -216,13 +312,13 @@
 				}
 
 				// states
-				var statesFolder = gui.addFolder( 'States' );
-				var clipCtrl = statesFolder.add( currentDropdownSelection, 'state' ).options( states );
-				clipCtrl.onChange( function () {
-					fadeToAction( currentDropdownSelection.state, 0.5 );
-				} );
+				// var statesFolder = gui.addFolder( 'States' );
+				// var clipCtrl = statesFolder.add( currentDropdownSelection, 'state' ).options( states );
+				// clipCtrl.onChange( function () {
+				// 	fadeToAction( currentDropdownSelection.state, 0.5 );
+				// } );
 
-				statesFolder.open();
+				// statesFolder.open();
 
 				activeAction = actions[ 'idle' ];
 				activeAction.setLoop(1)
