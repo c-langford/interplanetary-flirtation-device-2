@@ -143,10 +143,6 @@
             import { GLTFLoader } from './lib/GLTFLoader.js';
             import {WEBGL} from './lib/webgl.js';
 
-            if (!WEBGL.isWebGLAvailable()) {
-                var warning = WEBGL.getWebGLErrorMessage();
-                document.body.appendChild(warning);
-            }
 			var container, stats, clock, gui, mixer, actions, activeAction, previousAction, startElement;
 			var camera, scene, renderer, sceneParts, face, controls, raycastTarget, raycaster, audioTest;
 
@@ -193,10 +189,16 @@
                 'When your gestures have been successfully encoded, the snail will peak in stimulation levels and transmit your message. You should receive a response from your correspondent shortly thereafter.', 
             ]
 
-            var text;
-
-			init();
-            animate();
+			var text;
+			
+			if (!WEBGL.isWebGLAvailable()) {
+                var warning = WEBGL.getWebGLErrorMessage();
+                document.body.appendChild(warning);
+			} else 
+			{
+				init();
+            	animate();
+			}
 
 			function init() {
 
