@@ -9,7 +9,12 @@ please include my name (Chloê Langford) and my website (https://co-ordinat.es) 
 
 
 all audio files are creative commons (attribution license):
-- exotic creature - InspectorJ on freesound https://freesound.org/people/InspectorJ/sounds/469312/
+- exotic creature - InspectorJ www.jshaw.co.uk on freesound https://freesound.org/people/InspectorJ/
+- creature voice - InspectorJ www.jshaw.co.uk on freesound https://freesound.org/people/InspectorJ/
+- creature 2 - toolish on freesound https://freesound.org/people/t000lish/sounds/126731/
+- impact wet - original_sound on freesound https://freesound.org/people/original_sound/sounds/376819/
+- clean wet gulps - wizage on freesound https://freesound.org/people/Wizage/sounds/418853/
+- cranes 4 - straget on freesound https://freesound.org/people/straget/sounds/424141/
 - snarl  Doo1447733 on freesound https://freesound.org/people/D001447733/sounds/464600/
 
 open source software used: 

@@ -159,11 +159,12 @@
             import {WEBGL} from './lib/webgl.js';
 
 			var container, stats, clock, gui, mixer, actions, activeAction, previousAction, startElement;
-			var camera, scene, renderer, sceneParts, face, controls, raycastTarget, raycaster, audioTest;
-			var detector, finished, ending, download;
+			var camera, scene, renderer, sceneParts, face, controls, raycastTarget, raycaster;
+            var detector, finished, ending, download, currentAudio, test, audioLoader;
+            var audioInitialised = false;
 			var finishedTimer = 0;
 			var currentDropdownSelection = { state: 'idle' };
-			
+			var audio = {};;
 			var state = 0;
 			var previousState = 0;
 			var stateCounter = 0;
@@ -251,10 +252,7 @@
             	animate();
 			}
 
-			function init() {
-
-				audioTest = new Audio('audio/snarl.mp3');
-
+			function init() {      
 				container = document.getElementById('container');
 				ending = document.getElementById('end');
 				text = document.getElementById('text');
@@ -264,6 +262,12 @@
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
 				camera.position.set( -0.923, 0.5, 5.52 );
                 camera.lookAt(0,0.25,0);
+
+                // audio
+                var audioLoader = new THREE.AudioLoader();
+
+                var listener = new THREE.AudioListener();
+                camera.add(listener);
 
 				scene = new THREE.Scene();
 				var texture = new THREE.TextureLoader().load( "models/gradient-orange-green.png" );
@@ -320,24 +324,77 @@
 				// stats = new Stats();
 				// container.appendChild( stats.dom );
             }
+
+            function initialiseAudio(){
+                if (!audioInitialised) {
+                    var audioLoader = new THREE.AudioLoader();
+
+                    var listener = new THREE.AudioListener();
+                    camera.add(listener);
+
+                    var creature2 = new THREE.PositionalAudio(listener);
+                    var exotic2 = new THREE.PositionalAudio(listener);
+                    var cranes = new THREE.PositionalAudio(listener);
+                    var wetGulps = new THREE.PositionalAudio(listener);
+                    var creatureVoice = new THREE.PositionalAudio(listener);
+                    var exotic1 = new THREE.PositionalAudio(listener);
+                    var impact = new THREE.PositionalAudio(listener);
+                    var snarl = new THREE.PositionalAudio(listener);
+                    var long_gulps = new THREE.PositionalAudio(listener);
+
+                    audioLoader.load("audio/creature2.mp3", function (buffer) {
+                        audio['shudder'] = creature2.setBuffer(buffer);
+                    });
+                    audioLoader.load("audio/exotic-creature-trimmed-2.mp3", function (buffer) {
+                        audio['move_head_up'] = exotic2.setBuffer(buffer);
+                    });
+                    audioLoader.load("audio/cranes_4.mp3", function (buffer) {
+                        audio['cramp'] = cranes.setBuffer(buffer);
+                    });
+                    audioLoader.load("audio/clean_wet_gulps.mp3", function (buffer) {
+                        audio['antennae-twitch'] = wetGulps.setBuffer(buffer);
+                    });
+                    audioLoader.load("audio/creature_voice.mp3", function (buffer) {
+                        audio['tail_thump'] = creatureVoice.setBuffer(buffer);
+                    });
+                    audioLoader.load("audio/exotic-creature-trimmed-1.mp3", function (buffer) {
+                        audio['bend-slightly-forward'] = exotic1.setBuffer(buffer);
+                    });
+                    audioLoader.load("audio/impact_wet.mp3", function (buffer) {
+                        audio['tail_wag'] = impact.setBuffer(buffer);
+                    });
+                    audioLoader.load("audio/snarl-trimmed-1.mp3", function (buffer) {
+                        audio['dance'] = snarl.setBuffer(buffer);
+                    });
+                    audioLoader.load("audio/clean_wet_gulps_long.mp3", function (buffer) {
+                        audio['convulse'] = long_gulps.setBuffer(buffer);
+                    });
+                    audioInitialised = true;
+
+                }
+            }
+
             function next() {
+                initialiseAudio();
+                
                 currentText ++;
                 if (currentText >= 5) {
                     closeOverlay();
                 }
                 text.innerHTML = texts[currentText];
-            }
+            };
 
             function closeOverlay() {
-                    var intro = document.getElementById('intro');
-                    intro.parentNode.removeChild(intro);
-                    addTouchEventListeners();
-                };
+                initialiseAudio();
+                var intro = document.getElementById('intro');
+                intro.parentNode.removeChild(intro);
+                addTouchEventListeners();
+            };
             
             function zoomIn() {
                 camera.zoom += 0.2;
                 camera.updateProjectionMatrix();
-            }
+            };
 
             function zoomOut() {
                 camera.zoom -= 0.2;
@@ -380,7 +437,7 @@
 					'tail_wag'
 				 ];
 
-				// gui = new GUI();
+				gui = new GUI();
 
 				mixer = new THREE.AnimationMixer( sceneParts );
 
@@ -400,13 +457,13 @@
 				}
 
 				// animationState
-				// var animationStateFolder = gui.addFolder( 'animationState' );
-				// var clipCtrl = animationStateFolder.add( currentDropdownSelection, 'state' ).options( animationState );
-				// clipCtrl.onChange( function () {
-				// 	fadeToAction( currentDropdownSelection.state, 0.5 );
-				// } );
+				var animationStateFolder = gui.addFolder( 'animationState' );
+				var clipCtrl = animationStateFolder.add( currentDropdownSelection, 'state' ).options( animationStates );
+				clipCtrl.onChange( function () {
+					fadeToAction( currentDropdownSelection.state, 0.5 );
+				} );
 
-				// animationStateFolder.open();
+				animationStateFolder.open();
 
 				activeAction = actions[ 'idle' ];
 				activeAction.setLoop(1)
@@ -561,16 +618,18 @@
 			}
 
 			function handleTouchEvent(ev) {
-				// console.log(ev.type);
+                // console.log(ev.type);
 				if (state < 3 && ev.type == "swipe") {
 					return;
-				}
+                }
+                var aniName = randomArrayElement(interactionAnimations[ev.type]);
+                // currentAudio = audio[aniName];
+                // currentAudio.load();
+                
 				if (touchIntersectsWithSnail(ev)) {
-					// fadeToAction("dance", 0.5, false, 1);
-					// audioTest.load();
-					// audioTest.play();
-					var aniName = randomArrayElement(interactionAnimations[ev.type]);
-					// console.log(aniName);
+                    // console.log(aniName);
+                    // currentAudio.play();
+                    audio[aniName].play();
 					fadeToAction(aniName, 0.1, false, 1);
 					stateCounter += interactionPoints[ev.type]
 					console.log(stateCounter);
