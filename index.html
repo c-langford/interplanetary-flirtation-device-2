@@ -546,7 +546,7 @@
                 }
 
                  if ((state <= 2) && ((timer * 10) > 4)) {
-                    if (interactionsLastFourSeconds >= 25) {
+                    if (interactionsLastFourSeconds >= 35) {
                         hintTimer = 0;
                         hint.innerHTML = "ääää slower! stroke.";
                         interactionsLastFourSeconds = 0;
@@ -560,12 +560,17 @@
                     hint.innerHTML = "press longer~~~~";
                 }
 
+                if (state == 3 && hint.innerHTML == "") {
+                    hintTimer = 0;
+                    hint.innerHTML = "*!*!*!*";
+                }
+
                 if (hint.innerHTML == "press longer~~~~" && interactionCounters['press'] > 1) {
                     hintTimer = 0;
                     hint.innerHTML = "";
                 } 
 
-                if (state >= 2.5 && interactionCounters['pinch'] == 0) {
+                if (state >= 2.5 && interactionCounters['pinch'] <= 2) {
                     hintTimer = 0;
                     hint.innerHTML = "pinch pls";
                 }
@@ -575,7 +580,7 @@
                     hint.innerHTML = "";
                 } 
 
-                 if (state >= 3 && interactionCounters['doubletap'] == 0) {
+                 if (state >= 3 && interactionCounters['doubletap'] <= 4) {
                     hintTimer = 0;
                     hint.innerHTML = "bip bop 2 tap";
                 }
@@ -655,7 +660,7 @@
 					case 2.5:
                         // console.log("state 2.5 reached");
                         mat.emissive.set(new THREE.Color(0xff0000));
-                        mat.emissiveIntensity = 0.3;
+                        mat.emissiveIntensity = 0.7;
 						startIdleAnimation(Math.floor(state), 0.5, 1.5);
 						break; 
 					case 3: 
@@ -669,7 +674,7 @@
 					case 4:
                         // console.log("state 4 reached");
                         mat1.emissive.set(new THREE.Color(0xff66ff));
-                        mat1.emissiveIntensity = 0.6;
+                        mat1.emissiveIntensity = 0.35;
 						finished = true;
 						removeTouchEventListeners();
                         startIdleAnimation(state, 0.1, 1);
@@ -713,16 +718,16 @@
                         return 1.4;
                         break;
                     case 2.5:
-                        return 1.5;
-                        break;
-                    case 3:
-                        return 1.6;
-                        break;
-                    case 3.5:
                         return 1.7;
                         break;
+                    case 3:
+                        return 1.9;
+                        break;
+                    case 3.5:
+                        return 2.2;
+                        break;
                     case 4:
-                        return 2.5;
+                        return 2.7;
                         break;
                     default:
                         return 1;
