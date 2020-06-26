@@ -4,7 +4,7 @@
 		<title>Interplanetary Flirtation Device - Chloê Langford</title>
 		<meta charset="utf-8">
 		<link rel="icon" href="images/snail_small.png" type="image/png"> 
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />         
 		<meta name="description" content="A device for communicating via touch with extraterrestrial beings. Using a snail as an interface, the user can encode their messages to aliens in taps, pinches, presses and swipes.">         
 		<meta name="author" content="Chloê Langford">         
@@ -27,8 +27,8 @@
 		<meta property="og:site_name" content="Interplanetary Flirtation Device" />
 		<style>
 			body {
-				color: #222;
-                font-family: Helvetica;
+				color: darkblue;
+				font-family: Helvetica;
 			}
 
 			a {
@@ -41,8 +41,17 @@
 				padding: 0 2em;
 			}
 
-            #intro {
-				width: 100%;
+
+            .intro-text {
+				text-align: center;
+				margin: 5% auto 0 auto;
+                padding: 2.5%;
+                font-size: x-large;
+                /* max-width: 600px; */
+			}
+
+			.text-dialogs {
+					width: 100%;
 				height: 100%;
 				position: absolute;
 				top: 0;
@@ -52,17 +61,9 @@
                 -moz-background-size: cover;
                 -o-background-size: cover;
                 background-size: cover;
-                background-color: #cccccc;
+                background-color: #b9e000;
 				display: table;
                 z-index: 5;
-			}
-
-            .intro-text {
-				text-align: center;
-				margin: 5% auto 0 auto;
-                padding: 2.5%;
-                font-size: x-large;
-                /* max-width: 600px; */
 			}
 
 			.inner {
@@ -74,8 +75,9 @@
                 font-size: x-large;
                 padding: 5px 5px 5px 5px;
                 background-color: transparent;
-                border: 2px solid black;
-                font-style: italic;
+                border: 2px solid darkblue;
+				font-style: italic;
+				color: darkblue;
                 min-width: 30px;
             }
 
@@ -86,7 +88,9 @@
                 font-size: x-large;
                 font-style: italic;
                 padding: 0;
-                margin: 0;
+				margin: 0;
+				color: darkblue;
+				font-weight: bolder;
             }
 
             #webglmessage {
@@ -107,8 +111,10 @@
                 border-color: darkblue;
             }
             a {
+                text-decoration: underline; 
+				font-style: italic;
                 color: darkblue; 
-                font-style: italic;
+				
             }
 		</style>
 	</head>
@@ -116,19 +122,28 @@
 	<body style="margin:0; padding: 0;">
 		<!-- <button id="button">debug</button> -->
 		<!-- <a href="files/a-flipper-strokes.pdf" target="_blank">download test</a> -->
-        <div id="intro">
-            <p id="close">&#10006;</p>
+        <div id="intro" class="text-dialogs">
+            <p id="close">x</p>
             <div class="inner">
         
-                <div class="intro-text">
+                <div class="intro-text" >
                     <p id="text">Hi, welcome to the Interplanetary Flirtation Device - a telecommunication system that allows you to communicate with
                     extra-terrestrials using touch.</p>
                     <button id="next">Next</button>
                 </div>
                 
             </div>
-        </div>
-        <div style="position: absolute; bottom: 5%; width: 100%; text-align: center;"><button class="zoom" id="zoomin">+</button><button class="zoom" id="zoomout">-</button></div>
+		</div>
+		<div id="end" style="display:none;" class="text-dialogs">
+			<div class="inner">
+				<div class="intro-text">
+					<p>Your message has been encoded and transmitted to your correspondent and you have received a response message.</p>
+					<a id="download" href="" target="_blank"><button>Download Response</button></a>
+				</div>
+		
+			</div>
+		</div>
+        <!-- <div style="position: absolute; bottom: 5%; width: 100%; text-align: center;"><button class="zoom" id="zoomin">+</button><button class="zoom" id="zoomout">-</button></div> -->
         <div id="container" style="margin:0; padding: 0;"></div>
 
         <script src="lib/hammerjs/hammer.min.js"></script>
@@ -145,32 +160,68 @@
 
 			var container, stats, clock, gui, mixer, actions, activeAction, previousAction, startElement;
 			var camera, scene, renderer, sceneParts, face, controls, raycastTarget, raycaster, audioTest;
-
+			var detector, finished, ending, download;
+			var finishedTimer = 0;
 			var currentDropdownSelection = { state: 'idle' };
 			
 			var state = 0;
 			var previousState = 0;
 			var stateCounter = 0;
+			var fileNames = [
+					"a-flipper-strokes.pdf",        "pink-swan.pdf",
+					"alien-rot.pdf",                "pink-tusk.pdf",
+					"anise-creature.pdf",           "receptor-flush.pdf",
+					"anise-milch.pdf",              "room-womb.pdf",
+					"avalanche-of-sensation.pdf",   "sea-eyes.pdf",
+					"bleached-horizon.pdf",         "secret-fruits.pdf",
+					"brain-noodles.pdf",            "sheep-skins-oyster-shells.pdf",
+					"cockroach-innards.pdf",        "shoulder-solder.pdf",
+					"cold-hard-love.pdf",           "smell-sweat.pdf",
+					"concrete-ankle-bracelet.pdf",  "snail-sex.pdf",
+					"core-stone.pdf",               "snail-stomach.pdf",
+					"dove-pigeon-rat.pdf",          "spider-shore.pdf",
+					"each-keystroke.pdf",           "spiders-tongue.pdf",
+					"flexible-bodies.pdf",          "stash-rash.pdf",
+					"floppy-hearts.pdf",            "steam-staub.pdf",
+					"goose-cracklings.pdf",         "sternum-butter-sun.pdf",
+					"hair-hide.pdf",                "sunstalgia-moonstalgia.pdf",
+					"haunch-hunch.pdf",             "swan-nipple.pdf",
+					"hedgehog-crackling.pdf",       "sweats-scrapes.pdf",
+					"hot-rot.pdf",                  "tasteless-liquid.pdf",
+					"iteration-reflection.pdf",     "teradactyl-oyster.pdf",
+					"keta-nettle.pdf",              "the-procedure.pdf",
+					"landscape-of-dough.pdf",       "thinking-about.pdf",
+					"list.pdf",                     "thrust-rot.pdf",
+					"lubehips.pdf",                 "tickle-your-snail.pdf",
+					"metallic-sage.pdf",            "transform-escape.pdf",
+					"michelin-genitals.pdf",        "tusk.pdf",
+					"moon-puke-baby.pdf",           "twists-thrusts.pdf",
+					"muschel-slice.pdf",            "velvet-condom.pdf",
+					"noxious-organ.pdf",            "written-sweat.pdf",
+					"pale-blue-foam.pdf",           "x-fingers.pdf"
+		]
 			var interactionAnimations = {
-				"panend": ["shudder", "move_head_up", "antennae_twich", "tail_thump", "antennae_twich", "tail_thump"],
-				"swipe": ["cramp", "cramp", "shudder", "antennae_twitch", "dance"],
-				"tap": ["antennae-twitch", "tail_thump", "antennae-twitch", "tail_thump", "cramp"], 
-				"doubletap": ["antennae-twitch", "tail_thump", "tail_thump", "cramp", "bend_slightly_forward"],
-				"pinchend": ["tail_thump", "move_head_up", "shudder", "cramp"], 
-				"press": ["bend_slightly_forward", "tail_thump", "antennae_twitch"]
+				"panend": ["shudder", "move_head_up"],
+				"swipe": ["cramp"],
+				"tap": ["antennae-twitch", "tail_thump"], 
+				"doubletap": ["bend-slightly-forward"],
+				"pinchend": ["tail_wag"], 
+				"press": ["dance"]
 			};
 
 			var stateIdleAnimations =  [
 				["idle"], //state 0
 				["antennae-twitch", "tail_wag"], //state 1
-				["shudder", "dance"], //state 2
-				["convulse"] //state 3
+				["shudder"], //state 2
+				["dance" ], //state 3
+				["convulse"] //state 4
 			];
 			var stateEffects = [
 				[], // state 0
 				[], // state 1
 				[], // state 2
-				[] // state 3
+				[], // state 3
+				[] //state 4
 			];
 			var interactionPoints = {
 				"panend": 3,
@@ -182,8 +233,8 @@
 			}
             var currentText = -1;
             var texts = [
-                'It was made by <a href="https://co-ordinates" target="_blank">Chloê Langford</a> as part of the <a href="http://www.welcometomyhomepage.net/about-residency" target="_blank">Welcome to My Homepage residency</a>.',
-                'If you are using a desktop computer, please visit this page on a mobile device. <br><br> <img style="width:20vh;height:20vh;" src="images/qr-code.png"> <br><br> https://ifd.co-ordinat.es',
+                'It was made by <a href="https://co-ordinat.es" target="_blank">Chloê Langford</a> as part of the <a href="http://www.welcometomyhomepage.net/about-residency" target="_blank">Welcome to My Homepage residency</a>.',
+                'If you are using a desktop computer, please visit this page on a mobile device for the full experience. <br><br> <img style="width:20vh;height:20vh;" src="images/qr-code.png"> <br><br> https://ifd.co-ordinat.es',
                 'Please turn up your volume.',
                 'In order to communicate with extra-terrestrials using this experimental method, you are required to tap, press, pinch and stroke a rare variety of snail.',
                 'When your gestures have been successfully encoded, the snail will peak in stimulation levels and transmit your message. You should receive a response from your correspondent shortly thereafter.', 
@@ -204,8 +255,11 @@
 
 				audioTest = new Audio('audio/snarl.mp3');
 
-                container = document.getElementById('container');
-                text = document.getElementById('text');
+				container = document.getElementById('container');
+				ending = document.getElementById('end');
+				text = document.getElementById('text');
+                download = document.getElementById('download');
+				
 
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
 				camera.position.set( -0.923, 0.5, 5.52 );
@@ -236,7 +290,7 @@
                     scene.add( sceneParts );
 					raycastTarget = sceneParts['children'][4];
 					raycastTarget.material.transparent = true;
-					raycastTarget.material.opacity = 0.2;
+					raycastTarget.material.opacity = 0;
 
                     // console.log(raycastTarget);
                     // console.log(gltf.animations)
@@ -257,8 +311,8 @@
 
 				window.addEventListener( 'resize', onWindowResize, false );
 				// document.getElementById("button").addEventListener('click', printOut);
-				document.getElementById("zoomin").addEventListener('click', zoomIn);
-                document.getElementById("zoomout").addEventListener('click', zoomOut);
+				// document.getElementById("zoomin").addEventListener('click', zoomIn);
+                // document.getElementById("zoomout").addEventListener('click', zoomOut);
                 document.getElementById("close").addEventListener('click', closeOverlay);
                 document.getElementById("next").addEventListener('click', next);
                   
@@ -297,15 +351,23 @@
 				} else if (stateCounter < 121) {
 					state = 1;
 				} else if (stateCounter < 181) {
+					state = 1.5;
+				} else if (stateCounter < 221) {
 					state = 2;
-				} else {
+				} else if (stateCounter < 261) {
+					state = 2.5;
+				} else if (stateCounter < 391) {
 					state = 3;
+				} else if (stateCounter < 441) {
+					state = 3.5;
+				} else {
+					state = 4;
 				}
 			}
 
 			function createGUI( sceneParts, animations ) {
 
-				var states = [ 
+				var animationStates = [ 
 					'cramp',
 					'antennae-twitch',
 					'bend-slightly-forward',
@@ -330,21 +392,21 @@
 					var action = mixer.clipAction( clip );
 					actions[ clip.name ] = action;
 
-					if ( states.indexOf( clip.name ) >= 0 ) {
+					if ( animationStates.indexOf( clip.name ) >= 0 ) {
 
 						action.clampWhenFinished = true;
 						action.loop = THREE.LoopOnce;
 					}
 				}
 
-				// states
-				// var statesFolder = gui.addFolder( 'States' );
-				// var clipCtrl = statesFolder.add( currentDropdownSelection, 'state' ).options( states );
+				// animationState
+				// var animationStateFolder = gui.addFolder( 'animationState' );
+				// var clipCtrl = animationStateFolder.add( currentDropdownSelection, 'state' ).options( animationState );
 				// clipCtrl.onChange( function () {
 				// 	fadeToAction( currentDropdownSelection.state, 0.5 );
 				// } );
 
-				// statesFolder.open();
+				// animationStateFolder.open();
 
 				activeAction = actions[ 'idle' ];
 				activeAction.setLoop(1)
@@ -352,14 +414,16 @@
 			}
 
 			function fadeToAction( name, duration, loop = false, timeScale = 1 ) {
-
+				
 				previousAction = activeAction;
 				activeAction = actions[ name ];
+				// console.log(actions);
+				// console.log(name);
+				if (previousAction) {
+					if ( previousAction !== activeAction ) {
 
-				if ( previousAction !== activeAction ) {
-
-					previousAction.fadeOut( duration );
-
+						previousAction.fadeOut( duration );
+					}
 				}
 
 				activeAction
@@ -398,17 +462,39 @@
 			}
 			
 			function render() {
-				evaluateState();
-				if (previousState != state) {
-					changeState();
-					previousState = state;
-				}
-				if (activeAction) {
-					if (!activeAction.isRunning()) {
-						startIdleAnimation(state);
+				// console.log(finished);
+				
+				if (finishedTimer >= 0.06) {
+					if (finished) {
+						download.href = "/files/" + randomArrayElement(fileNames);
+						end.style = "display: table;"
+						finished = false;
 					}
+				} else {
+					if (finished) {
+						console.log(finishedTimer);
+						finishedTimer += clock.getDelta();
+					} else {
+						evaluateState();
+						if (previousState != state) {
+							changeState();
+							previousState = state;
+						}
+					}
+
+					if (activeAction) {
+						if (!activeAction.isRunning()) {
+							var flooredState = Math.floor(state);
+							var speed = state - flooredState;
+							startIdleAnimation(state = flooredState, speed = speed);
+						}
+					}
+					renderer.render(scene, camera);
 				}
-				renderer.render(scene, camera);
+			}
+
+			function selectRandomText() {
+
 			}
 
 			function startIdleAnimation(state, transitionDuration, speed) {
@@ -425,12 +511,32 @@
 						console.log("state 1 reached");
 						startIdleAnimation(state, 0.5, 1);
 						break; 
+					case 1.5:
+						console.log("state 1.5 reached");
+						startIdleAnimation(Math.floor(state), 0.5, 1.5);
+						break; 
 					case 2:
 						console.log("state 2 reached");
+						startIdleAnimation(state, 0.5, 1);
+						break; 
+					case 2.5:
+						console.log("state 2.5 reached");
+						startIdleAnimation(Math.floor(state), 0.5, 1.5);
 						break; 
 					case 3: 
 						console.log("state 3 reached");
+						startIdleAnimation(state, 0.3, 1);
+						break;
+					case 3.5:
+						console.log("state 3.5 reached");
+						startIdleAnimation(Math.floor(state), 0.3, 1.5);
 						break; 
+					case 4:
+						console.log("state 4 reached");
+						finished = true;
+						removeTouchEventListeners();
+						startIdleAnimation(state, 0.1, 1);
+						break;
 					default: 
 						break; 
 				}
@@ -456,11 +562,16 @@
 
 			function handleTouchEvent(ev) {
 				// console.log(ev.type);
-
+				if (state < 3 && ev.type == "swipe") {
+					return;
+				}
 				if (touchIntersectsWithSnail(ev)) {
 					// fadeToAction("dance", 0.5, false, 1);
 					// audioTest.load();
 					// audioTest.play();
+					var aniName = randomArrayElement(interactionAnimations[ev.type]);
+					// console.log(aniName);
+					fadeToAction(aniName, 0.1, false, 1);
 					stateCounter += interactionPoints[ev.type]
 					console.log(stateCounter);
 				}
@@ -469,7 +580,7 @@
 
             function addTouchEventListeners() {
                     var region = container;
-					var detector = new Hammer(region);
+					detector = new Hammer(region);
 					
 					var singleTap = new Hammer.Tap({ event: 'tap' });
 					var doubleTap = new Hammer.Tap({ event: 'doubletap', taps: 2, interval: 500, posThreshold: 30 });
@@ -483,7 +594,11 @@
 					detector.add(swipe);
 					detector.add(new Hammer.Pan({threshold: 70 }).requireFailure([pinch, swipe]));
                     detector.on("tap press swipe doubletap pinchend panend", handleTouchEvent);
-                };
+			};
+			
+			function removeTouchEventListeners() {
+				detector.destroy();
+			}
 
 		</script>
 
