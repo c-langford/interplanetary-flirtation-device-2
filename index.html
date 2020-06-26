@@ -340,7 +340,7 @@
                     var exotic1 = new THREE.PositionalAudio(listener);
                     var impact = new THREE.PositionalAudio(listener);
                     var snarl = new THREE.PositionalAudio(listener);
-                    var long_gulps = new THREE.PositionalAudio(listener);
+                    var longGulps = new THREE.PositionalAudio(listener);
 
                     audioLoader.load("audio/creature2.mp3", function (buffer) {
                         audio['shudder'] = creature2.setBuffer(buffer);
@@ -367,7 +367,8 @@
                         audio['dance'] = snarl.setBuffer(buffer);
                     });
                     audioLoader.load("audio/clean_wet_gulps_long.mp3", function (buffer) {
-                        audio['convulse'] = long_gulps.setBuffer(buffer);
+                        audio['convulse'] = longGulps.setBuffer(buffer);
+                        audio['convulse'].setLoop(true);
                     });
                     audioInitialised = true;
 
@@ -521,8 +522,9 @@
 			function render() {
 				// console.log(finished);
 				
-				if (finishedTimer >= 0.06) {
+				if (finishedTimer >= 0.1) {
 					if (finished) {
+                        audio['convulse'].stop() 
 						download.href = "/files/" + randomArrayElement(fileNames);
 						end.style = "display: table;"
 						finished = false;
@@ -592,7 +594,8 @@
 						console.log("state 4 reached");
 						finished = true;
 						removeTouchEventListeners();
-						startIdleAnimation(state, 0.1, 1);
+                        startIdleAnimation(state, 0.1, 1);
+                        audio['convulse'].play();
 						break;
 					default: 
 						break; 
