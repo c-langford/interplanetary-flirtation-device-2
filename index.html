@@ -6,7 +6,7 @@
 		<link rel="icon" href="images/snail_small.png" type="image/png"> 
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />         
-		<meta name="description" content="A device for communicating via touch with extraterrestrial beings. Using a snail as an interface, the user can encode their messages to aliens in taps, pinches, presses and swipes.">         
+		<meta name="description" content="A device for communicating via touch with extraterrestrial beings.">         
 		<meta name="author" content="Chloê Langford">         
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">        
 		<meta name="keywords" content="experimental art, media art, digital art, new media, net art, artgames, videogame, indie games, alien, extraterrestrial, Chloê Langford, tactile, mobile games, web-based art, snail, digital culture">        
@@ -14,7 +14,7 @@
 		<meta name="twitter:card" content="summary">        
 		<meta name="twitter:site" content="@greenred123">         
 		<meta name="twitter:title" content="Interplanetary Flirtation Device v2.0">         
-		<meta name="twitter:description" content="A device for communicating via touch with extraterrestrial beings. Using a snail as an interface, the user can encode their messages to aliens in taps, pinches, presses and swipes.">                 
+		<meta name="twitter:description" content="A device for communicating via touch with extraterrestrial beings.">                 
 		<meta name="twitter:creator" content="@greenred123">        
 		<!-- Twitter Summary card images must be at least 120x120px -->         
 		<meta name="twitter:image" content="https://ifd.co-ordinat.es/images/snail.jpg">         
@@ -23,7 +23,7 @@
 		<meta property="og:type" content="article" />         
 		<meta property="og:url" content="https://ifd.co-ordinat.es/" />         
 		<meta property="og:image" content="https://ifd.co-ordinat.es/images/snail.jpg" />         
-		<meta property="og:description" content="A device for communicating via touch with extraterrestrial beings. Using a snail as an interface, the user can encode their messages to aliens in taps, pinches, presses and swipes.">                 
+		<meta property="og:description" content="A device for communicating via touch with extraterrestrial beings.">                 
 		<meta property="og:site_name" content="Interplanetary Flirtation Device" />
 		<style>
 			body {
@@ -143,7 +143,7 @@
 		
 			</div>
 		</div>
-        <!-- <div style="position: absolute; bottom: 5%; width: 100%; text-align: center;"><button class="zoom" id="zoomin">+</button><button class="zoom" id="zoomout">-</button></div> -->
+        <div id="hint" style="position: absolute; bottom: 5%; width: 100%; text-align: center; font-style: italic; font-size: x-large;"></div>
         <div id="container" style="margin:0; padding: 0;"></div>
 
         <script src="lib/hammerjs/hammer.min.js"></script>
@@ -160,7 +160,11 @@
 
 			var container, stats, clock, gui, mixer, actions, activeAction, previousAction, startElement;
 			var camera, scene, renderer, sceneParts, face, controls, raycastTarget, raycaster;
-            var detector, finished, ending, download, currentAudio, test, audioLoader;
+            var detector, finished, ending, download, currentAudio, test, audioLoader, hint, mat;
+            var hintTimer = 0;
+            var timer = 0;
+            var interactionsLastFourSeconds = 0;
+            var startTiming = false;
             var audioInitialised = false;
 			var finishedTimer = 0;
 			var currentDropdownSelection = { state: 'idle' };
@@ -231,17 +235,25 @@
 				"doubletap": 2,
 				"pinchend": 3, 
 				"press": 2
-			}
+            }
+            var interactionCounters = {
+                "panend": 0,
+                "swipe": 0,
+                "tap": 0,
+                "doubletap": 0,
+                "pinchend": 0,
+                "press": 0
+            }
             var currentText = -1;
             var texts = [
                 'It was made by <a href="https://co-ordinat.es" target="_blank">Chloê Langford</a> as part of the <a href="http://www.welcometomyhomepage.net/about-residency" target="_blank">Welcome to My Homepage residency</a>.',
                 'If you are using a desktop computer, please visit this page on a mobile device for the full experience. <br><br> <img style="width:20vh;height:20vh;" src="images/qr-code.png"> <br><br> https://ifd.co-ordinat.es',
                 'Please turn up your volume.',
-                'In order to communicate with extra-terrestrials using this experimental method, you are required to tap, press, pinch and stroke a rare variety of snail.',
+                'In order to communicate with extra-terrestrials using this experimental method, you are required to encode your message by touching a rare variety of snail.',
                 'When your gestures have been successfully encoded, the snail will peak in stimulation levels and transmit your message. You should receive a response from your correspondent shortly thereafter.', 
             ]
 
-			var text;
+			var text, mat1;
 			
 			if (!WEBGL.isWebGLAvailable()) {
                 var warning = WEBGL.getWebGLErrorMessage();
@@ -252,7 +264,8 @@
             	animate();
 			}
 
-			function init() {      
+			function init() {   
+                hint = document.getElementById('hint');   
 				container = document.getElementById('container');
 				ending = document.getElementById('end');
 				text = document.getElementById('text');
@@ -270,7 +283,7 @@
                 camera.add(listener);
 
 				scene = new THREE.Scene();
-				var texture = new THREE.TextureLoader().load( "models/gradient-orange-green.png" );
+                var texture = new THREE.TextureLoader().load( "models/gradient-orange-green.png" );
 				scene.background = texture;
 
 				clock = new THREE.Clock();
@@ -297,8 +310,10 @@
 					raycastTarget.material.opacity = 0;
 
                     // console.log(raycastTarget);
-                    // console.log(gltf.animations)
-
+                    // console.log(scene);
+                    mat1 = scene.children[2].children[2].children[3].material;
+                    mat = scene.children[2].children[3].material;
+                    // console.log(mat);
 					createGUI( sceneParts, gltf.animations );
 				}, undefined, function ( e ) {
 					console.error( e );
@@ -386,6 +401,7 @@
             };
 
             function closeOverlay() {
+                startTiming = true;
                 initialiseAudio();
                 var intro = document.getElementById('intro');
                 intro.parentNode.removeChild(intro);
@@ -438,7 +454,7 @@
 					'tail_wag'
 				 ];
 
-				gui = new GUI();
+				// gui = new GUI();
 
 				mixer = new THREE.AnimationMixer( sceneParts );
 
@@ -458,13 +474,13 @@
 				}
 
 				// animationState
-				var animationStateFolder = gui.addFolder( 'animationState' );
-				var clipCtrl = animationStateFolder.add( currentDropdownSelection, 'state' ).options( animationStates );
-				clipCtrl.onChange( function () {
-					fadeToAction( currentDropdownSelection.state, 0.5 );
-				} );
+				// var animationStateFolder = gui.addFolder( 'animationState' );
+				// var clipCtrl = animationStateFolder.add( currentDropdownSelection, 'state' ).options( animationStates );
+				// clipCtrl.onChange( function () {
+				// 	fadeToAction( currentDropdownSelection.state, 0.5 );
+				// } );
 
-				animationStateFolder.open();
+				// animationStateFolder.open();
 
 				activeAction = actions[ 'idle' ];
 				activeAction.setLoop(1)
@@ -509,7 +525,8 @@
 
 			function animate() {
 
-				var dt = clock.getDelta();
+                var dt = clock.getDelta();
+                if (startTiming) timer += dt;
 
 				if ( mixer ) mixer.update( dt );
 
@@ -517,11 +534,68 @@
 				render();
 				// stats.update();
 
-			}
+            }
+            
+            function hintHandler () {
+                if (hint.innerHTML != "") {
+                    hintTimer += clock.getDelta() * 10;
+                }
+                if (hintTimer >= 2){
+                    hint.innerHTML = "";
+                    hintTimer = 0;
+                }
+
+                 if ((state <= 2) && ((timer * 10) > 4)) {
+                    if (interactionsLastFourSeconds >= 25) {
+                        hintTimer = 0;
+                        hint.innerHTML = "ääää slower! stroke.";
+                        interactionsLastFourSeconds = 0;
+                        timer = 0;
+                    }
+                }
+                // console.log(interactionCounters['press'] );
+
+                if (state >= 1.5 && interactionCounters['press'] == 0) {
+                    hintTimer = 0;
+                    hint.innerHTML = "press longer~~~~";
+                }
+
+                if (hint.innerHTML == "press longer~~~~" && interactionCounters['press'] > 1) {
+                    hintTimer = 0;
+                    hint.innerHTML = "";
+                } 
+
+                if (state >= 2.5 && interactionCounters['pinch'] == 0) {
+                    hintTimer = 0;
+                    hint.innerHTML = "pinch pls";
+                }
+
+                if (hint.innerHTML == "pinch pls" && interactionCounters['pinch'] > 1) {
+                    hintTimer = 0;
+                    hint.innerHTML = "";
+                } 
+
+                 if (state >= 3 && interactionCounters['doubletap'] == 0) {
+                    hintTimer = 0;
+                    hint.innerHTML = "bip bop 2 tap";
+                }
+
+                if (hint.innerHTML == "bip bop 2 tap" && interactionCounters['doubletap'] > 1) {
+                    hintTimer = 0;
+                    hint.innerHTML = "";
+                } 
+
+                if (state == 3.5 ) {
+                    hintTimer = 0;
+                    hint.innerHTML = "ööööö";
+                }
+                
+            }
 			
 			function render() {
-				// console.log(finished);
-				
+                // console.log(finished);
+                hintHandler();
+               
 				if (finishedTimer >= 0.1) {
 					if (finished) {
                         audio['convulse'].stop() 
@@ -531,7 +605,7 @@
 					}
 				} else {
 					if (finished) {
-						console.log(finishedTimer);
+						// console.log(finishedTimer);
 						finishedTimer += clock.getDelta();
 					} else {
 						evaluateState();
@@ -567,31 +641,35 @@
 					case 0: 
 						break; 
 					case 1:
-						console.log("state 1 reached");
+						// console.log("state 1 reached");
 						startIdleAnimation(state, 0.5, 1);
 						break; 
 					case 1.5:
-						console.log("state 1.5 reached");
+						// console.log("state 1.5 reached");
 						startIdleAnimation(Math.floor(state), 0.5, 1.5);
 						break; 
 					case 2:
-						console.log("state 2 reached");
+						// console.log("state 2 reached");
 						startIdleAnimation(state, 0.5, 1);
 						break; 
 					case 2.5:
-						console.log("state 2.5 reached");
+                        // console.log("state 2.5 reached");
+                        mat.emissive.set(new THREE.Color(0xff0000));
+                        mat.emissiveIntensity = 0.3;
 						startIdleAnimation(Math.floor(state), 0.5, 1.5);
 						break; 
 					case 3: 
-						console.log("state 3 reached");
-						startIdleAnimation(state, 0.3, 1);
+                        // console.log("state 3 reached");
+                        startIdleAnimation(state, 0.3, 1);
 						break;
 					case 3.5:
-						console.log("state 3.5 reached");
+						// console.log("state 3.5 reached");
 						startIdleAnimation(Math.floor(state), 0.3, 1.5);
 						break; 
 					case 4:
-						console.log("state 4 reached");
+                        // console.log("state 4 reached");
+                        mat1.emissive.set(new THREE.Color(0xff66ff));
+                        mat1.emissiveIntensity = 0.6;
 						finished = true;
 						removeTouchEventListeners();
                         startIdleAnimation(state, 0.1, 1);
@@ -618,7 +696,39 @@
 					return true;
 				}
 				return false;
-			}
+            }
+            
+            function getSpeed () {
+                switch (state) {
+                    case 0:
+                        return 1;
+                        break;
+                    case 1:
+                        return 1.2;
+                        break;
+                    case 1.5:
+                        return 1.3;
+                        break;
+                    case 2:
+                        return 1.4;
+                        break;
+                    case 2.5:
+                        return 1.5;
+                        break;
+                    case 3:
+                        return 1.6;
+                        break;
+                    case 3.5:
+                        return 1.7;
+                        break;
+                    case 4:
+                        return 2.5;
+                        break;
+                    default:
+                        return 1;
+                        break;
+                }
+            }
 
 			function handleTouchEvent(ev) {
                 // console.log(ev.type);
@@ -632,13 +742,16 @@
 				if (touchIntersectsWithSnail(ev)) {
                     // console.log(aniName);
                     // currentAudio.play();
+                    audio[aniName].setPlaybackRate(getSpeed());
                     audio[aniName].play();
-					fadeToAction(aniName, 0.1, false, 1);
-					stateCounter += interactionPoints[ev.type]
-					console.log(stateCounter);
+					fadeToAction(aniName, 0.1, false, getSpeed());
+                    stateCounter += interactionPoints[ev.type];
+                    interactionCounters[ev.type]++;
+                    interactionsLastFourSeconds += 1;
+                    // console.log(interactionsLastFourSeconds);
+					// console.log(stateCounter);
 				}
-			}
-
+            }
 
             function addTouchEventListeners() {
                     var region = container;
