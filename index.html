@@ -143,7 +143,10 @@
 		
 			</div>
 		</div>
-        <div id="hint" style="position: absolute; bottom: 5%; width: 100%; text-align: center; font-style: italic; font-size: x-large;"></div>
+        <div id="hint" style="position: absolute; bottom: 10%; width: 100%; text-align: center; font-style: italic; font-size: x-large;"></div>
+        <div
+            style="position: absolute; bottom: 2%; width: 100%; text-align: center; font-style: italic;"><button style="font-size: large;" id="zoomout">-</button><button style="font-size: large;" id="zoomin">+</button>
+        </div>
         <div id="container" style="margin:0; padding: 0;"></div>
 
         <script src="lib/hammerjs/hammer.min.js"></script>
@@ -221,13 +224,13 @@
 				["dance" ], //state 3
 				["convulse"] //state 4
 			];
-			var stateEffects = [
-				[], // state 0
-				[], // state 1
-				[], // state 2
-				[], // state 3
-				[] //state 4
-			];
+			// var stateEffects = [
+			// 	[], // state 0
+			// 	[], // state 1
+			// 	[], // state 2
+			// 	[], // state 3
+			// 	[] //state 4
+			// ];
 			var interactionPoints = {
 				"panend": 3,
 				"swipe": 5,
@@ -330,8 +333,8 @@
 
 				window.addEventListener( 'resize', onWindowResize, false );
 				// document.getElementById("button").addEventListener('click', printOut);
-				// document.getElementById("zoomin").addEventListener('click', zoomIn);
-                // document.getElementById("zoomout").addEventListener('click', zoomOut);
+				document.getElementById("zoomin").addEventListener('click', zoomIn);
+                document.getElementById("zoomout").addEventListener('click', zoomOut);
                 document.getElementById("close").addEventListener('click', closeOverlay);
                 document.getElementById("next").addEventListener('click', next);
                   
