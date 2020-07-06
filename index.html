@@ -29,7 +29,21 @@
 			body {
 				color: darkblue;
 				font-family: Helvetica;
+				background: #b9e000;
+				background: linear-gradient(0deg, rgba(17,223,2,1) 0%, rgba(163,181,0,1) 29%, rgba(223,102,4,1) 49%, rgba(163,181,0,1) 67%, rgba(17,223,2,1) 100%);
+				background-size: 200% 200%;
+				background-position-y: 0%;
 			}
+
+			@keyframes bg-ani {
+				from {
+					background-position-y: 0%;
+				}
+				to {
+					background-position-y: 100%;
+				}
+			}
+
 
 			a {
 				color: #2fa1d6;
@@ -56,12 +70,8 @@
 				position: absolute;
 				top: 0;
 				left: 0;
-                background: url(models/gradient-orange-green.png) no-repeat center center fixed;
-                -webkit-background-size: cover;
-                -moz-background-size: cover;
-                -o-background-size: cover;
-                background-size: cover;
-                background-color: #b9e000;
+				background-color: #b9e000;
+                background: linear-gradient(180deg, rgba(17,223,2,1) 0%, rgba(163,181,0,1) 42%, rgba(223,102,4,1) 100%);
 				display: table;
                 z-index: 5;
 			}
@@ -144,9 +154,9 @@
 			</div>
 		</div>
         <div id="hint" style="position: absolute; bottom: 10%; width: 100%; text-align: center; font-style: italic; font-size: x-large;"></div>
-        <div
+        <!-- <div
             style="position: absolute; bottom: 2%; width: 100%; text-align: center; font-style: italic;"><button style="font-size: large;" id="zoomout">-</button><button style="font-size: large;" id="zoomin">+</button>
-        </div>
+        </div> -->
         <div id="container" style="margin:0; padding: 0;"></div>
 
         <script src="lib/hammerjs/hammer.min.js"></script>
@@ -164,6 +174,9 @@
 			var container, stats, clock, gui, mixer, actions, activeAction, previousAction, startElement;
 			var camera, scene, renderer, sceneParts, face, controls, raycastTarget, raycaster;
             var detector, finished, ending, download, currentAudio, test, audioLoader, hint, mat;
+			var emissive1 = false;
+			var emissive2Ascending = true;
+			var emissive2 = false;
             var hintTimer = 0;
             var timer = 0;
             var interactionsLastFourSeconds = 0;
@@ -286,9 +299,9 @@
                 camera.add(listener);
 
 				scene = new THREE.Scene();
-                var texture = new THREE.TextureLoader().load( "models/gradient-orange-green.png" );
-				scene.background = texture;
-
+                // var texture = new THREE.TextureLoader().load( "models/gradient-orange-green.png" );
+				// scene.background = texture;
+				// scene.background = new THREE.Color(0xff0000);
 				clock = new THREE.Clock();
 
 				// lights
@@ -325,7 +338,8 @@
 
                 raycaster = new THREE.Raycaster();
 
-				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer = new THREE.WebGLRenderer( { antialias: true, alpha:true } );
+				renderer.setClearColor(0xffffff, 0);
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.outputEncoding = THREE.sRGBEncoding;
@@ -333,8 +347,8 @@
 
 				window.addEventListener( 'resize', onWindowResize, false );
 				// document.getElementById("button").addEventListener('click', printOut);
-				document.getElementById("zoomin").addEventListener('click', zoomIn);
-                document.getElementById("zoomout").addEventListener('click', zoomOut);
+				// document.getElementById("zoomin").addEventListener('click', zoomIn);
+                // document.getElementById("zoomout").addEventListener('click', zoomOut);
                 document.getElementById("close").addEventListener('click', closeOverlay);
                 document.getElementById("next").addEventListener('click', next);
                   
@@ -423,19 +437,19 @@
             }
 
 			function evaluateState() {
-				if(stateCounter < 61) {
+				if(stateCounter < 31) {
 					state = 0;
-				} else if (stateCounter < 121) {
+				} else if (stateCounter < 61) {
 					state = 1;
-				} else if (stateCounter < 181) {
+				} else if (stateCounter < 101) {
 					state = 1.5;
-				} else if (stateCounter < 221) {
+				} else if (stateCounter < 151) {
 					state = 2;
-				} else if (stateCounter < 261) {
+				} else if (stateCounter < 201) {
 					state = 2.5;
-				} else if (stateCounter < 391) {
+				} else if (stateCounter < 261) {
 					state = 3;
-				} else if (stateCounter < 441) {
+				} else if (stateCounter < 331) {
 					state = 3.5;
 				} else {
 					state = 4;
@@ -522,9 +536,12 @@
 			}
 
 			function printOut() {
-				console.log(camera);
-				console.log(camera.getWorldDirection());
+				// console.log(camera);
+				// console.log(camera.getWorldDirection());
+				// shellScale = true;
 			}
+
+
 
 			function animate() {
 
@@ -558,7 +575,7 @@
                 }
                 // console.log(interactionCounters['press'] );
 
-                if (state >= 1.5 && interactionCounters['press'] == 0) {
+                if (state >= 1.5 && interactionCounters['press'] >= 5) {
                     hintTimer = 0;
                     hint.innerHTML = "press longer~~~~";
                 }
@@ -568,17 +585,17 @@
                     hint.innerHTML = "*!*!*!*";
                 }
 
-                if (hint.innerHTML == "press longer~~~~" && interactionCounters['press'] > 1) {
+                if (hint.innerHTML == "press longer~~~~" && interactionCounters['press'] > 5) {
                     hintTimer = 0;
                     hint.innerHTML = "";
                 } 
 
-                if (state >= 2.5 && interactionCounters['pinch'] <= 2) {
+                if (state >= 1 && interactionCounters['pinchend'] <= 1) {
                     hintTimer = 0;
                     hint.innerHTML = "pinch pls";
                 }
 
-                if (hint.innerHTML == "pinch pls" && interactionCounters['pinch'] > 1) {
+                if (hint.innerHTML == "pinch pls" && interactionCounters['pinchend'] > 1) {
                     hintTimer = 0;
                     hint.innerHTML = "";
                 } 
@@ -588,7 +605,7 @@
                     hint.innerHTML = "bip bop 2 tap";
                 }
 
-                if (hint.innerHTML == "bip bop 2 tap" && interactionCounters['doubletap'] > 1) {
+                if (hint.innerHTML == "bip bop 2 tap" && interactionCounters['doubletap'] > 4) {
                     hintTimer = 0;
                     hint.innerHTML = "";
                 } 
@@ -599,14 +616,41 @@
                 }
                 
             }
+
+			function emissionHandler() {
+				if (emissive1) {
+					
+					mat.emissive.set(mat.emissive.lerp(new THREE.Color(0xff0000), 0.001));
+					mat.emissiveIntensity = 0.7;
+				}
+
+				if(emissive2) {
+					mat1.emissiveIntensity = 0.6;
+					if (emissive2Ascending) {
+						mat1.emissive.set(mat1.emissive.lerpHSL(new THREE.Color(0xff66ff), 0.01));
+					} else {
+						mat1.emissive.set(mat1.emissive.lerpHSL(new THREE.Color(0x000000), 0.01));
+					}
+
+					if (mat1.emissive.r > 0.80 && emissive2Ascending) {
+						emissive2Ascending = false;
+					}
+
+					if (!emissive2Ascending && mat1.emissive.r < 0.1) {
+						emissive2Ascending = true;
+					}
+				}
+			}
 			
 			function render() {
                 // console.log(finished);
                 hintHandler();
+				emissionHandler();
                
-				if (finishedTimer >= 0.1) {
+				if (finishedTimer >= 0.15) {
 					if (finished) {
-                        audio['convulse'].stop() 
+                        audio['convulse'].stop();
+						audio['tail_wag'].play(); 
 						download.href = "/files/" + randomArrayElement(fileNames);
 						end.style = "display: table;"
 						finished = false;
@@ -654,20 +698,21 @@
 						break; 
 					case 1.5:
 						// console.log("state 1.5 reached");
+
 						startIdleAnimation(Math.floor(state), 0.5, 1.5);
 						break; 
 					case 2:
 						// console.log("state 2 reached");
+						emissive1 = true;
 						startIdleAnimation(state, 0.5, 1);
 						break; 
 					case 2.5:
                         // console.log("state 2.5 reached");
-                        mat.emissive.set(new THREE.Color(0xff0000));
-                        mat.emissiveIntensity = 0.7;
 						startIdleAnimation(Math.floor(state), 0.5, 1.5);
 						break; 
 					case 3: 
                         // console.log("state 3 reached");
+						emissive2 = true;
                         startIdleAnimation(state, 0.3, 1);
 						break;
 					case 3.5:
@@ -676,8 +721,7 @@
 						break; 
 					case 4:
                         // console.log("state 4 reached");
-                        mat1.emissive.set(new THREE.Color(0xff66ff));
-                        mat1.emissiveIntensity = 0.35;
+						startBgAnimation();
 						finished = true;
 						removeTouchEventListeners();
                         startIdleAnimation(state, 0.1, 1);
@@ -687,6 +731,10 @@
 						break; 
 				}
 			}
+
+			function startBgAnimation() {
+				document.body.style.animation = "bg-ani 1s ease-in-out infinite alternate";
+			};
 
 			function randomArrayElement(items) {
 				return items[Math.floor(Math.random()*items.length)];
@@ -739,7 +787,7 @@
             }
 
 			function handleTouchEvent(ev) {
-                // console.log(ev.type);
+               
 				if (state < 3 && ev.type == "swipe") {
 					return;
                 }
@@ -754,6 +802,7 @@
                     audio[aniName].play();
 					fadeToAction(aniName, 0.1, false, getSpeed());
                     stateCounter += interactionPoints[ev.type];
+					 console.log(ev.type);
                     interactionCounters[ev.type]++;
                     interactionsLastFourSeconds += 1;
                     // console.log(interactionsLastFourSeconds);
