@@ -177,6 +177,9 @@
 			var emissive1 = false;
 			var emissive2Ascending = true;
 			var emissive2 = false;
+			var scalingShellOn = false;
+			var scaleFactor = 0;
+			var scaleAscending = true;
             var hintTimer = 0;
             var timer = 0;
             var interactionsLastFourSeconds = 0;
@@ -538,7 +541,7 @@
 			function printOut() {
 				// console.log(camera);
 				// console.log(camera.getWorldDirection());
-				// shellScale = true;
+				// scalingShellOn = true;
 			}
 
 
@@ -555,6 +558,19 @@
 				// stats.update();
 
             }
+
+			function shellScaler () {
+				if (scalingShellOn) {
+					if (scaleFactor == 1) scaleAscending = false;
+					if (scaleFactor == 0) scaleAscending = true;
+					
+					scaleAscending ? scaleFactor += 0.05 : scaleFactor -= 0.05;
+					scaleFactor = THREE.MathUtils.clamp(scaleFactor, 0, 1);
+					
+					var scale = THREE.MathUtils.lerp(1, 1.05, scaleFactor)
+					scene.children[2].children[3].scale.set(scale, scale, scale);
+				}
+			};
             
             function hintHandler () {
                 if (hint.innerHTML != "") {
@@ -644,10 +660,11 @@
 			
 			function render() {
                 // console.log(finished);
+				shellScaler();
                 hintHandler();
 				emissionHandler();
                
-				if (finishedTimer >= 0.15) {
+				if (finishedTimer >= 0.1) {
 					if (finished) {
                         audio['convulse'].stop();
 						audio['tail_wag'].play(); 
@@ -698,7 +715,7 @@
 						break; 
 					case 1.5:
 						// console.log("state 1.5 reached");
-
+						scalingShellOn = true;
 						startIdleAnimation(Math.floor(state), 0.5, 1.5);
 						break; 
 					case 2:
