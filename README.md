@@ -8,7 +8,7 @@ the snail model models/snail_ani.glb was created by myself and is available for 
 please include my name (Chloê Langford) and my website (https://co-ordinat.es) in the attribution. the file includes the meshes, animations and textures. you can raise an issue in this repository if you'd like to let me know that you've reused the asset - i'd be excited to see any new uses. 
 
 
-all audio files are creative commons (attribution license):
+all audio files are available under the creative commons attribution license:
 - exotic creature - InspectorJ www.jshaw.co.uk on freesound https://freesound.org/people/InspectorJ/
 - creature voice - InspectorJ www.jshaw.co.uk on freesound https://freesound.org/people/InspectorJ/
 - creature 2 - toolish on freesound https://freesound.org/people/t000lish/sounds/126731/
@@ -16,6 +16,7 @@ all audio files are creative commons (attribution license):
 - clean wet gulps - wizage on freesound https://freesound.org/people/Wizage/sounds/418853/
 - cranes 4 - straget on freesound https://freesound.org/people/straget/sounds/424141/
 - snarl  Doo1447733 on freesound https://freesound.org/people/D001447733/sounds/464600/
+- slime splash sound - Mike Koenig http://soundbible.com/1097-Slime-Splash.html 
 
 open source software used: 
 - Hammer.js https://hammerjs.github.io/
